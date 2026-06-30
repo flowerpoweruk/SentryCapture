@@ -1,0 +1,20 @@
+# Build output
+bin/
+obj/
+publish/
+dist/
+*.user
+
+# App runtime data (do not commit captured images, config, or logs)
+SentryCapture_Data/
+config.json
+logs/
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local editor / tool settings
+.claude/
+.vs/

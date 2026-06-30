@@ -1,0 +1,210 @@
+<Window x:Class="SentryCapture.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:SentryCapture.ViewModels"
+        Title="Sentry Capture" Height="720" Width="1040"
+        MinHeight="520" MinWidth="780"
+        Background="{StaticResource BgBrush}"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI">
+
+    <DockPanel>
+        <!-- ===== Header ===== -->
+        <Border DockPanel.Dock="Top" Background="{StaticResource CardBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                Padding="20,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Sentry Capture" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="{Binding StatusSummary}" FontSize="12"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="▶  Start All" Style="{StaticResource PrimaryButton}"
+                            Command="{Binding StartAllCommand}" Margin="0,0,8,0" />
+                    <Button Content="■  Stop All" Style="{StaticResource BaseButton}"
+                            Command="{Binding StopAllCommand}" Margin="0,0,8,0" />
+                    <Button Content="✉  Send Feedback" Style="{StaticResource BaseButton}"
+                            Command="{Binding SendFeedbackCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ===== Tabs ===== -->
+        <TabControl Background="Transparent" BorderThickness="0" Padding="0" Margin="12,8,12,12">
+
+            <!-- ===== Dashboard ===== -->
+            <TabItem Header="Dashboard">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Margin="4,8,4,10">
+                        <Button x:Name="AddCameraButton" Content="＋  Add Camera"
+                                Style="{StaticResource PrimaryButton}"
+                                Click="AddCameraButton_Click"
+                                IsEnabled="{Binding CanAddCamera}" Margin="0,0,8,0" />
+                        <Button Content="📂  Open Data Folder" Style="{StaticResource BaseButton}"
+                                Command="{Binding OpenDataFolderCommand}" />
+                    </StackPanel>
+
+                    <!-- Empty state -->
+                    <Border Grid.Row="1" Style="{StaticResource Card}" Margin="4"
+                            VerticalAlignment="Top"
+                            Visibility="{Binding Cameras.Count, Converter={StaticResource ZeroToVisibleConverter}}">
+                        <StackPanel HorizontalAlignment="Center" Margin="0,40">
+                            <TextBlock Text="No cameras configured yet"
+                                       FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                            <TextBlock Text="Click “Add Camera” to add a feed (name + direct JPEG URL). Up to 10 cameras."
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Margin="0,6,0,0" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,4,0">
+                        <ItemsControl ItemsSource="{Binding Cameras}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:CameraViewModel}">
+                                    <Border Style="{StaticResource Card}" Width="320" Margin="4">
+                                        <StackPanel>
+                                            <!-- Header row: status dot + name + status text -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <Ellipse Style="{StaticResource StatusDot}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Name}"
+                                                           FontSize="15" FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           VerticalAlignment="Center" Margin="10,0,8,0" />
+                                                <TextBlock Grid.Column="2" Text="{Binding StatusText}"
+                                                           FontSize="12" FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                                           VerticalAlignment="Center" />
+                                            </Grid>
+
+                                            <TextBlock Text="{Binding Url}" FontSize="11"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       TextTrimming="CharacterEllipsis" Margin="24,4,0,0"
+                                                       ToolTip="{Binding Url}" />
+
+                                            <!-- Metrics -->
+                                            <Grid Margin="24,14,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <TextBlock Text="Images" FontSize="11"
+                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                                    <TextBlock Text="{Binding ImageCount}" FontSize="20" FontWeight="Bold" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="Uptime" FontSize="11"
+                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                                    <TextBlock Text="{Binding Uptime}" FontSize="20" FontWeight="Bold" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Last error (only when present) -->
+                                            <TextBlock Text="{Binding LastError}" FontSize="11"
+                                                       Foreground="{StaticResource DangerBrush}"
+                                                       TextWrapping="Wrap" MaxHeight="48" Margin="24,10,0,0"
+                                                       ToolTip="{Binding LastError}"
+                                                       Visibility="{Binding LastError, Converter={StaticResource EmptyToCollapsedConverter}}" />
+
+                                            <!-- Actions -->
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+                                                <Button Content="Edit" Style="{StaticResource BaseButton}"
+                                                        Padding="12,5" FontSize="12"
+                                                        Click="EditCameraButton_Click" Tag="{Binding}" Margin="0,0,6,0" />
+                                                <Button Content="Remove" Style="{StaticResource BaseButton}"
+                                                        Padding="12,5" FontSize="12"
+                                                        Foreground="{StaticResource DangerBrush}"
+                                                        Click="RemoveCameraButton_Click" Tag="{Binding}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <!-- ===== Debug Log ===== -->
+            <TabItem Header="Debug Log">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Orientation="Horizontal" Margin="4,8,4,10">
+                        <Button Content="📋  Copy Log" Style="{StaticResource PrimaryButton}"
+                                Command="{Binding CopyLogCommand}" Margin="0,0,8,0" />
+                        <Button Content="Clear View" Style="{StaticResource BaseButton}"
+                                Command="{Binding ClearLogViewCommand}" Margin="0,0,8,0" />
+                        <Button Content="📂  Open Log Folder" Style="{StaticResource BaseButton}"
+                                Command="{Binding OpenLogFolderCommand}" />
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" Margin="4">
+                        <ListBox x:Name="LogList" ItemsSource="{Binding LogEntries}"
+                                 Background="#FF111418" BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 SelectionMode="Extended"
+                                 VirtualizingStackPanel.IsVirtualizing="True"
+                                 VirtualizingStackPanel.VirtualizationMode="Recycling">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="2,0" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" FontFamily="Consolas, Cascadia Mono, monospace"
+                                               FontSize="12" TextWrapping="Wrap" Foreground="#FFD8DEE4">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Level}" Value="Success">
+                                                        <Setter Property="Foreground" Value="#FF4ADE80" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Level}" Value="Warning">
+                                                        <Setter Property="Foreground" Value="#FFFBBF24" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Level}" Value="Error">
+                                                        <Setter Property="Foreground" Value="#FFF87171" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>
