@@ -6,6 +6,8 @@ It is a native desktop application (WPF / .NET 8) — its own window, not a brow
 
 > Sentry Capture only **collects and stores** images. It does not analyse them. Incident detection is a separate tool that will read the folders this app produces.
 
+![Sentry Capture dashboard](Screenshot%202026-06-30%20203003.png)
+
 ---
 
 ## Quick start (for end users)
